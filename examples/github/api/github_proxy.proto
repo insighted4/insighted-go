@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package api;
+
+message GetUserRequest {
+    string name = 1;
+}
+
+message User {
+    int64 ID = 1;
+    string Login = 2;
+    string Name = 3;
+    int64 Followers = 4;
+    int64 Following = 5;
+}
+
+service GithubProxy {
+    rpc GetUser(GetUserRequest) returns (User) {}
+}
