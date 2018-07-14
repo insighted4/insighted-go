@@ -28,7 +28,7 @@ func (s service) GetUser(ctx context.Context, req *GetUserRequest) (*User, error
 	}
 
 	return &User{
-		ID:        int64(*u.ID),
+		Id:        int64(*u.ID),
 		Name:      *u.Name,
 		Followers: int64(*u.Followers),
 		Following: int64(*u.Following),

@@ -7,11 +7,11 @@ message GetUserRequest {
 }
 
 message User {
-    int64 ID = 1;
-    string Login = 2;
-    string Name = 3;
-    int64 Followers = 4;
-    int64 Following = 5;
+    int64 id = 1;
+    string login = 2;
+    string name = 3;
+    int64 followers = 4;
+    int64 following = 5;
 }
 
 service GithubProxy {
