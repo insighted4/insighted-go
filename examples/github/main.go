@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/insighted4/insighted-go/kit"
 	"github.com/insighted4/insighted-go/examples/github/api"
+	"github.com/insighted4/insighted-go/kit"
 )
 
 func main() {
@@ -10,5 +10,5 @@ func main() {
 	cfg.LoggerFormat = "text"
 	cfg.EnablePProf = true
 	svc := api.New()
-	kit.Run(cfg, svc, )
+	kit.Run(cfg, svc)
 }
