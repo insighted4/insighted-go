@@ -22,6 +22,9 @@ const (
 	// that does not exist in the Store
 	ErrAggregateNotFound = "AggregateNotFound"
 
+	// ErrUnhandledCommand occurs when the command handler is unable to handle a command
+	ErrUnhandledCommand = "UnhandledCommand"
+
 	// ErrUnhandledEvent occurs when the Aggregate is unable to handle an event and returns
 	// a non-nill err
 	ErrUnhandledEvent = "UnhandledEvent"
