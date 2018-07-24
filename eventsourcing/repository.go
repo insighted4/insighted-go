@@ -93,14 +93,6 @@ func (r *Repository) loadVersion(ctx context.Context, aggregateID string) (Aggre
 	return aggregate, version, nil
 }
 
-// Dispatch executes the command specified
-//
-// Deprecated: Use Apply instead
-func (r *Repository) Dispatch(ctx context.Context, command Command) error {
-	_, err := r.Apply(ctx, command)
-	return err
-}
-
 // Apply executes the command specified and returns the current version of the aggregate
 func (r *Repository) Apply(ctx context.Context, command Command) (int, error) {
 	if command == nil {

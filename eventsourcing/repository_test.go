@@ -220,8 +220,8 @@ func TestWithObservers(t *testing.T) {
 
 	ctx := context.Background()
 
-	// When I dispatch command
-	err := repository.Dispatch(ctx, &CreateEntity{
+	// When I apply command
+	_, err := repository.Apply(ctx, &CreateEntity{
 		CommandModel: CommandModel{ID: "abc"},
 	})
 
