@@ -8,10 +8,10 @@ import (
 // Serializer converts between Events and Records
 type Serializer interface {
 	// MarshalEvent converts an Event to a Record
-	MarshalEvent(event Event) (Record, error)
+	MarshalEvent(event Event) (Record, Error)
 
 	// UnmarshalEvent converts an Event backed into a Record
-	UnmarshalEvent(record Record) (Event, error)
+	UnmarshalEvent(record Record) (Event, Error)
 }
 
 type jsonEvent struct {
@@ -33,12 +33,12 @@ func (j *JSONSerializer) Bind(events ...Event) {
 }
 
 // MarshalEvent converts an event into its persistent type, Record
-func (j *JSONSerializer) MarshalEvent(v Event) (Record, error) {
+func (j *JSONSerializer) MarshalEvent(v Event) (Record, Error) {
 	eventType, _ := EventType(v)
 
 	data, err := json.Marshal(v)
 	if err != nil {
-		return Record{}, err
+		return Record{}, NewError(err, ErrorInvalidEncoding, "unable to encode data")
 	}
 
 	data, err = json.Marshal(jsonEvent{
@@ -46,7 +46,7 @@ func (j *JSONSerializer) MarshalEvent(v Event) (Record, error) {
 		Data: json.RawMessage(data),
 	})
 	if err != nil {
-		return Record{}, NewError(err, ErrInvalidEncoding, "unable to encode event")
+		return Record{}, NewError(err, ErrorInvalidEncoding, "unable to encode event")
 	}
 
 	return Record{
@@ -56,29 +56,29 @@ func (j *JSONSerializer) MarshalEvent(v Event) (Record, error) {
 }
 
 // UnmarshalEvent converts the persistent type, Record, into an Event instance
-func (j *JSONSerializer) UnmarshalEvent(record Record) (Event, error) {
+func (j *JSONSerializer) UnmarshalEvent(record Record) (Event, Error) {
 	wrapper := jsonEvent{}
 	err := json.Unmarshal(record.Data, &wrapper)
 	if err != nil {
-		return nil, NewError(err, ErrInvalidEncoding, "unable to unmarshal event")
+		return nil, NewError(err, ErrorInvalidEncoding, "unable to unmarshal event")
 	}
 
 	t, ok := j.eventTypes[wrapper.Type]
 	if !ok {
-		return nil, NewError(err, ErrUnboundEventType, "unbound event type, %v", wrapper.Type)
+		return nil, NewError(err, ErrorUnboundEventType, "unbound event type, %v", wrapper.Type)
 	}
 
 	v := reflect.New(t).Interface()
 	err = json.Unmarshal(wrapper.Data, v)
 	if err != nil {
-		return nil, NewError(err, ErrInvalidEncoding, "unable to unmarshal event data into %#v", v)
+		return nil, NewError(err, ErrorInvalidEncoding, "unable to unmarshal event data into %#v", v)
 	}
 
 	return v.(Event), nil
 }
 
 // MarshalAll is a utility that marshals all the events provided into a History object
-func (j *JSONSerializer) MarshalAll(events ...Event) (History, error) {
+func (j *JSONSerializer) MarshalAll(events ...Event) (History, Error) {
 	history := make(History, 0, len(events))
 
 	for _, event := range events {

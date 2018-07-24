@@ -16,12 +16,12 @@ type Postgres struct {
 }
 
 // Save implements the Store interface and saves records, serialized events, in Postgres
-func (p *Postgres) Save(ctx context.Context, aggregateID string, records ...eventsourcing.Record) error {
+func (p *Postgres) Save(ctx context.Context, aggregateID string, records ...eventsourcing.Record) eventsourcing.Error {
 	return nil
 }
 
 // Load implements the Store interface and retrieve events from Postgres
-func (p *Postgres) Load(ctx context.Context, aggregateID string, fromVersion, toVersion int) (eventsourcing.History, error) {
+func (p *Postgres) Load(ctx context.Context, aggregateID string, fromVersion, toVersion int) (eventsourcing.History, eventsourcing.Error) {
 	return nil, nil
 }
 

@@ -22,5 +22,5 @@ func (m CommandModel) AggregateID() string {
 // CommandHandler consumes a command and emits Events
 type CommandHandler interface {
 	// Apply applies a command to an aggregate to generate a new set of events
-	Apply(ctx context.Context, command Command) ([]Event, error)
+	Apply(ctx context.Context, command Command) ([]Event, Error)
 }

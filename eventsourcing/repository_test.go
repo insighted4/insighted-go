@@ -2,7 +2,6 @@ package eventsourcing
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
 
@@ -27,7 +26,7 @@ type EntityNameSet struct {
 	Name string
 }
 
-func (item *Entity) On(event Event) error {
+func (item *Entity) On(event Event) Error {
 	switch v := event.(type) {
 	case *EntityCreated:
 		item.Version = v.Model.Version
@@ -41,7 +40,7 @@ func (item *Entity) On(event Event) error {
 		item.UpdatedAt = v.Model.At
 
 	default:
-		return errors.New(ErrUnhandledEvent)
+		return NewError(nil, ErrorUnhandledEvent, "")
 	}
 
 	return nil
@@ -55,7 +54,7 @@ type Nop struct {
 	CommandModel
 }
 
-func (item *Entity) Apply(ctx context.Context, command Command) ([]Event, error) {
+func (item *Entity) Apply(ctx context.Context, command Command) ([]Event, Error) {
 	switch command.(type) {
 	case *CreateEntity:
 		return []Event{&EntityCreated{

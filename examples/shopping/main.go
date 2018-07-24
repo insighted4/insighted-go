@@ -32,7 +32,7 @@ type OrderShipped struct {
 }
 
 // On implements Aggregate interface
-func (item *Order) On(event eventsourcing.Event) error {
+func (item *Order) On(event eventsourcing.Event) eventsourcing.Error {
 	switch v := event.(type) {
 	case *OrderCreated:
 		item.State = "created"
@@ -41,7 +41,7 @@ func (item *Order) On(event eventsourcing.Event) error {
 		item.State = "shipped"
 
 	default:
-		return fmt.Errorf("unable to handle event, %v", v)
+		return eventsourcing.NewError(nil, eventsourcing.ErrorUnhandledEvent, "unable to handle event, %v", v)
 	}
 
 	item.Version = event.EventVersion()
@@ -62,7 +62,7 @@ type ShipOrder struct {
 }
 
 // Apply implements the CommandHandler interface
-func (item *Order) Apply(ctx context.Context, command eventsourcing.Command) ([]eventsourcing.Event, error) {
+func (item *Order) Apply(ctx context.Context, command eventsourcing.Command) ([]eventsourcing.Event, eventsourcing.Error) {
 	switch v := command.(type) {
 	case *CreateOrder:
 		orderCreated := &OrderCreated{
@@ -72,7 +72,7 @@ func (item *Order) Apply(ctx context.Context, command eventsourcing.Command) ([]
 
 	case *ShipOrder:
 		if item.State != "created" {
-			return nil, fmt.Errorf("order, %v, has already shipped", command.AggregateID())
+			return nil, eventsourcing.NewError(nil, eventsourcing.ErrorInvalidArgument, "order, %v, has already shipped", command.AggregateID())
 		}
 		orderShipped := &OrderShipped{
 			Model: eventsourcing.Model{ID: command.AggregateID(), Version: item.Version + 1, At: time.Now()},
@@ -80,7 +80,7 @@ func (item *Order) Apply(ctx context.Context, command eventsourcing.Command) ([]
 		return []eventsourcing.Event{orderShipped}, nil
 
 	default:
-		return nil, fmt.Errorf("unhandled command, %v", v)
+		return nil, eventsourcing.NewError(nil, eventsourcing.ErrorInvalidArgument, "unhandled command, %v", v)
 	}
 }
 

@@ -2,8 +2,6 @@ package eventsourcing
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"reflect"
 
 	"github.com/sirupsen/logrus"
@@ -15,7 +13,7 @@ import (
 type Aggregate interface {
 	// On will be called for each event; returns err if the event could not be
 	// applied
-	On(event Event) error
+	On(event Event) Error
 }
 
 // Repository provides the primary abstraction to saving and loading events
@@ -33,7 +31,7 @@ func (r *Repository) New() Aggregate {
 }
 
 // Save persists the events into the underlying Store
-func (r *Repository) Save(ctx context.Context, events ...Event) error {
+func (r *Repository) Save(ctx context.Context, events ...Event) Error {
 	if len(events) == 0 {
 		return nil
 	}
@@ -53,14 +51,14 @@ func (r *Repository) Save(ctx context.Context, events ...Event) error {
 }
 
 // Load retrieves the specified aggregate from the underlying store
-func (r *Repository) Load(ctx context.Context, aggregateID string) (Aggregate, error) {
+func (r *Repository) Load(ctx context.Context, aggregateID string) (Aggregate, Error) {
 	v, _, err := r.loadVersion(ctx, aggregateID)
 	return v, err
 }
 
 // loadVersion loads the specified aggregate from the store and returns both the Aggregate and the
 // current version number of the aggregate
-func (r *Repository) loadVersion(ctx context.Context, aggregateID string) (Aggregate, int, error) {
+func (r *Repository) loadVersion(ctx context.Context, aggregateID string) (Aggregate, int, Error) {
 	history, err := r.store.Load(ctx, aggregateID, 0, 0)
 	if err != nil {
 		return nil, 0, err
@@ -68,7 +66,7 @@ func (r *Repository) loadVersion(ctx context.Context, aggregateID string) (Aggre
 
 	entryCount := len(history)
 	if entryCount == 0 {
-		return nil, 0, NewError(nil, ErrAggregateNotFound, "unable to load %v, %v", r.New(), aggregateID)
+		return nil, 0, NewError(nil, ErrorAggregateNotFound, "unable to load %v, %v", r.New(), aggregateID)
 	}
 
 	r.logger.Infof("loaded %v event(s) for aggregate id, %v", entryCount, aggregateID)
@@ -84,7 +82,7 @@ func (r *Repository) loadVersion(ctx context.Context, aggregateID string) (Aggre
 		err = aggregate.On(event)
 		if err != nil {
 			eventType, _ := EventType(event)
-			return nil, 0, NewError(err, ErrUnhandledEvent, "aggregate was unable to handle event, %v", eventType)
+			return nil, 0, NewError(err, ErrorUnhandledEvent, "aggregate was unable to handle event, %v", eventType)
 		}
 
 		version = event.EventVersion()
@@ -94,13 +92,13 @@ func (r *Repository) loadVersion(ctx context.Context, aggregateID string) (Aggre
 }
 
 // Apply executes the command specified and returns the current version of the aggregate
-func (r *Repository) Apply(ctx context.Context, command Command) (int, error) {
+func (r *Repository) Apply(ctx context.Context, command Command) (int, Error) {
 	if command == nil {
-		return 0, errors.New("command provided to Repository.Dispatch may not be nil")
+		return 0, NewError(nil, ErrorInvalidArgument, "command provided to Repository.Dispatch may not be nil")
 	}
 	aggregateID := command.AggregateID()
 	if aggregateID == "" {
-		return 0, errors.New("command provided to Repository.Dispatch may not contain a blank aggregate ID")
+		return 0, NewError(nil, ErrorInvalidArgument, "command provided to Repository.Dispatch may not contain a blank aggregate ID")
 	}
 
 	aggregate, version, err := r.loadVersion(ctx, aggregateID)
@@ -110,7 +108,7 @@ func (r *Repository) Apply(ctx context.Context, command Command) (int, error) {
 
 	h, ok := aggregate.(CommandHandler)
 	if !ok {
-		return 0, fmt.Errorf("aggregate, %v, does not implement CommandHandler", aggregate)
+		return 0, NewError(nil, ErrorInvalidArgument, "aggregate %v, does not implement CommandHandler", aggregate)
 	}
 	events, err := h.Apply(ctx, command)
 	if err != nil {

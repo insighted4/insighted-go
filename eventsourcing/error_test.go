@@ -35,13 +35,13 @@ func TestIsNotFound(t *testing.T) {
 			IsNotFound: false,
 		},
 		"Error": {
-			Err:        NewError(nil, ErrAggregateNotFound, "not found"),
+			Err:        NewError(nil, ErrorAggregateNotFound, "not found"),
 			IsNotFound: true,
 		},
 		"nested Error": {
 			Err: NewError(
-				NewError(nil, ErrAggregateNotFound, "not found"),
-				ErrUnboundEventType,
+				NewError(nil, ErrorAggregateNotFound, "not found"),
+				ErrorUnboundEventType,
 				"not found",
 			),
 			IsNotFound: true,

@@ -36,12 +36,12 @@ func (h History) Less(i, j int) bool {
 // Store provides an abstraction for the Repository to save data
 type Store interface {
 	// Save the provided serialized records to the store
-	Save(ctx context.Context, aggregateID string, records ...Record) error
+	Save(ctx context.Context, aggregateID string, records ...Record) Error
 
 	// Load the history of events up to the version specified.
 	// When toVersion is 0, all events will be loaded.
 	// To start at the beginning, fromVersion should be set to 0
-	Load(ctx context.Context, aggregateID string, fromVersion, toVersion int) (History, error)
+	Load(ctx context.Context, aggregateID string, fromVersion, toVersion int) (History, Error)
 }
 
 // MemStore provides an in-MemStore implementation of Service
@@ -51,7 +51,7 @@ type MemStore struct {
 }
 
 // Save implements the Store interface and saves records, serialized events, in-MemStore
-func (m *MemStore) Save(ctx context.Context, aggregateID string, records ...Record) error {
+func (m *MemStore) Save(ctx context.Context, aggregateID string, records ...Record) Error {
 	if _, ok := m.eventsByID[aggregateID]; !ok {
 		m.eventsByID[aggregateID] = History{}
 	}
@@ -64,10 +64,10 @@ func (m *MemStore) Save(ctx context.Context, aggregateID string, records ...Reco
 }
 
 // Load implements the Store interface and retrieve events from in-MemStore
-func (m *MemStore) Load(ctx context.Context, aggregateID string, fromVersion, toVersion int) (History, error) {
+func (m *MemStore) Load(ctx context.Context, aggregateID string, fromVersion, toVersion int) (History, Error) {
 	all, ok := m.eventsByID[aggregateID]
 	if !ok {
-		return nil, NewError(nil, ErrAggregateNotFound, "no aggregate found with id, %v", aggregateID)
+		return nil, NewError(nil, ErrorAggregateNotFound, "no aggregate found with id, %v", aggregateID)
 	}
 
 	history := make(History, 0, len(all))

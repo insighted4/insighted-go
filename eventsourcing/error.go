@@ -12,22 +12,25 @@ const (
 	//InvalidAt         = "InvalidAt"
 	//InvalidVersion    = "InvalidVersion"
 
-	// ErrInvalidEncoding is returned when the Serializer cannot marshal the event
-	ErrInvalidEncoding = "InvalidEncoding"
+	// ErrorInvalidArgument is returned when the caller passed an incorrect value
+	ErrorInvalidArgument = "Invalid Encoding"
 
-	// ErrUnboundEventType when the Serializer cannot unmarshal the serialized event
-	ErrUnboundEventType = "UnboundEventType"
+	// ErrorInvalidEncoding is returned when the Serializer cannot marshal the event
+	ErrorInvalidEncoding = "Invalid Encoding"
 
-	// ErrAggregateNotFound will be returned when attempting to Load an aggregateID
+	// ErrorUnboundEventType when the Serializer cannot unmarshal the serialized event
+	ErrorUnboundEventType = "Unbound Event Type"
+
+	// ErrorAggregateNotFound will be returned when attempting to Load an aggregateID
 	// that does not exist in the Store
-	ErrAggregateNotFound = "AggregateNotFound"
+	ErrorAggregateNotFound = "Aggregate Not Found"
 
-	// ErrUnhandledCommand occurs when the command handler is unable to handle a command
-	ErrUnhandledCommand = "UnhandledCommand"
+	// ErrorUnhandledCommand occurs when the command handler is unable to handle a command
+	ErrorUnhandledCommand = "UnhandledCommand"
 
-	// ErrUnhandledEvent occurs when the Aggregate is unable to handle an event and returns
+	// ErrorUnhandledEvent occurs when the Aggregate is unable to handle an event and returns
 	// a non-nill err
-	ErrUnhandledEvent = "UnhandledEvent"
+	ErrorUnhandledEvent = "UnhandledEvent"
 )
 
 // Error provides a standardized error interface for eventsource
@@ -57,7 +60,7 @@ func (b *baseErr) Error() string   { return fmt.Sprintf("[%v] %v - %v", b.code, 
 func (b *baseErr) String() string  { return b.Error() }
 
 // NewError generates the common error structure
-func NewError(err error, code, format string, args ...interface{}) error {
+func NewError(err error, code, format string, args ...interface{}) Error {
 	return &baseErr{
 		code:    code,
 		message: fmt.Sprintf(format, args...),
@@ -99,7 +102,7 @@ func IsNotFound(err error) bool {
 			return false
 		}
 
-		if v.Code() == ErrAggregateNotFound {
+		if v.Code() == ErrorAggregateNotFound {
 			return true
 		}
 
