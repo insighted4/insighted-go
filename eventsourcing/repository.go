@@ -69,7 +69,7 @@ func (r *Repository) loadVersion(ctx context.Context, aggregateID string) (Aggre
 		return nil, 0, NewError(nil, ErrorAggregateNotFound, "unable to load %v, %v", r.New(), aggregateID)
 	}
 
-	r.logger.Infof("loaded %v event(s) for aggregate id, %v", entryCount, aggregateID)
+	r.logger.Infof("Loaded %v event(s) for aggregate id, %v", entryCount, aggregateID)
 	aggregate := r.New()
 
 	version := 0

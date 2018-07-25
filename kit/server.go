@@ -111,8 +111,8 @@ func (s *Server) start() error {
 			s.logger.Errorf("HTTP server error - initiating shutting down: %v", err)
 			s.stop()
 		}
-		s.logger.Infof("Listening and serving HTTP on %s\n", s.httpServer.Addr)
 	}()
+	s.logger.Infof("Listening and serving HTTP on %s", s.httpServer.Addr)
 
 	if s.grpcServer != nil {
 		addr := fmt.Sprintf(":%d", s.config.RPCPort)
@@ -132,8 +132,7 @@ func (s *Server) start() error {
 				s.stop()
 			}
 		}()
-
-		s.logger.Infof("listening on RPC port: %d", s.config.RPCPort)
+		s.logger.Infof("Listening on RPC port: %d", s.config.RPCPort)
 	}
 
 	go func() {
@@ -178,6 +177,6 @@ func Run(cfg Config, svc Service) error {
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL)
-	srv.logger.Info("received signal", <-ch)
+	srv.logger.Info("Received signal ", <-ch)
 	return srv.stop()
 }
