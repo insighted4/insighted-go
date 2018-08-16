@@ -75,12 +75,12 @@ func CORSHandler() gin.HandlerFunc {
 // purposes.
 func RequestIDHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if reqID := c.GetHeader("X-Request-Id"); reqID != "" {
-			c.Writer.Header().Set("X-Request-Id", reqID)
-		} else {
-			c.Writer.Header().Set("X-Request-Id", uuid.NewV4().String())
+		reqID := c.GetHeader("X-Request-Id")
+		if reqID != "" {
+			reqID = uuid.NewV4().String()
 		}
 
+		c.Writer.Header().Set("X-Request-Id", reqID)
 		c.Next()
 	}
 }
