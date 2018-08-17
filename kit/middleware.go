@@ -74,10 +74,12 @@ func CORSHandler() gin.HandlerFunc {
 // that could be used to track incoming requests for monitoring/debugging
 // purposes.
 func RequestIDHandler() gin.HandlerFunc {
+
 	return func(c *gin.Context) {
 		reqID := c.GetHeader("X-Request-Id")
 		if reqID != "" {
-			reqID = uuid.NewV4().String()
+			gen := uuid.Must(uuid.NewV4())
+			reqID = gen.String()
 		}
 
 		c.Writer.Header().Set("X-Request-Id", reqID)
