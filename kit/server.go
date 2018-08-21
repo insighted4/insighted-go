@@ -78,6 +78,7 @@ func createHTTPServer(cfg Config, svc Service, logger logrus.FieldLogger) *http.
 	handler.Use(CORSHandler())
 	handler.Use(LoggerHandler(logger, time.RFC3339, true))
 	handler.Use(RequestIDHandler())
+	handler.NoRoute(NotFoundHandler)
 
 	for rel, endpoint := range svc.HTTPEndpoints() {
 		group := handler.Group(rel)
