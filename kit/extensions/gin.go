@@ -93,7 +93,7 @@ func RequestIDHandler() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		reqID := c.GetHeader("X-Request-Id")
-		if reqID != "" {
+		if reqID == "" {
 			gen := uuid.Must(uuid.NewV4())
 			reqID = gen.String()
 		}
