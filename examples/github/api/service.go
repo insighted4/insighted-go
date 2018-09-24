@@ -32,7 +32,7 @@ func New(cfg kit.Config) kit.Service {
 }
 
 func (s service) Config() kit.Config {
-	return kit.Config(s.cfg)
+	return s.cfg
 }
 
 func (s service) HTTPHandler() http.Handler {
