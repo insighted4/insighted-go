@@ -2,43 +2,52 @@ package api
 
 import (
 	"net/http"
+	"time"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/github"
 	"github.com/insighted4/insighted-go/kit"
+	extensions "github.com/insighted4/insighted-go/kit/extensions"
 	"google.golang.org/grpc"
 )
-
-type Config struct{}
 
 const prefix = "/api/v1"
 
 type service struct {
 	client *github.Client
+	cfg    kit.Config
+	logger logrus.FieldLogger
 }
 
 var _ GithubProxyServer = service{}
 
-func New() kit.Service {
+func New(cfg kit.Config) kit.Service {
 	return service{
-		github.NewClient(nil),
+		client: github.NewClient(nil),
+		cfg:    cfg,
+		logger: kit.NewLogger(cfg.LoggerLevel, cfg.LoggerFormat),
 	}
 }
 
-func (s service) HTTPEndpoints() map[string]kit.HTTPEndpoint {
-	return map[string]kit.HTTPEndpoint{
-		"/": {
-			Methods: map[string]gin.HandlerFunc{
-				http.MethodGet: s.RootHandler,
-			},
-		},
-		prefix + "/users/:id": {
-			Middleware: kit.NoCacheHandler(),
-			Methods: map[string]gin.HandlerFunc{
-				http.MethodGet: s.getUserHTTPHandler,
-			},
-		},
-	}
+func (s service) Config() kit.Config {
+	return kit.Config(s.cfg)
+}
+
+func (s service) HTTPHandler() http.Handler {
+	handler := gin.New()
+	handler.Use(gin.Recovery())
+	handler.Use(extensions.CORSHandler())
+	handler.Use(extensions.LoggerHandler(s.logger, time.RFC3339, true))
+	handler.Use(extensions.RequestIDHandler())
+	handler.NoRoute(extensions.NotFoundHandler)
+
+	handler.GET("/", s.RootHandler)
+
+	group := handler.Use(extensions.NoCacheHandler())
+	group.GET(prefix+"/users/:id", s.getUserHTTPHandler)
+	return handler
 }
 
 func (s service) RPCMiddleware() grpc.UnaryServerInterceptor {

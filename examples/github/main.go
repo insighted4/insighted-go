@@ -9,6 +9,6 @@ func main() {
 	cfg := kit.DefaultConfig()
 	cfg.LoggerFormat = "text"
 	cfg.EnablePProf = true
-	svc := api.New()
-	kit.Run(cfg, svc)
+	svc := api.New(cfg)
+	kit.Run(svc)
 }

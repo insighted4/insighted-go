@@ -5,17 +5,15 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/insighted4/insighted-go/kit"
-	ocontext "golang.org/x/net/context"
+	"github.com/insighted4/insighted-go/kit/extensions"
 )
 
 func (s service) getUserHTTPHandler(c *gin.Context) {
 	username := c.Param("id")
 
-	oc := ocontext.Context(c)
-	body, err := s.GetUser(oc, &GetUserRequest{Name: username})
+	body, err := s.GetUser(context.Context(c), &GetUserRequest{Name: username})
 	if err != nil {
-		kit.AbortWithStatusJSON(c, http.StatusInternalServerError, err.Error())
+		extensions.AbortWithStatusJSON(c, http.StatusInternalServerError, err.Error())
 	}
 
 	c.JSON(http.StatusOK, body)

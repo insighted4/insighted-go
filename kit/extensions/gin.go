@@ -1,6 +1,7 @@
-package kit
+package extensions
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -8,6 +9,21 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 )
+
+// AbortWithStatusJSON is a helper function that calls `Abort()` and then `JSON` internally.
+// This method stops the chain, writes the status code and return a JSON body with HTTP status code and error message.
+// It also sets the Content-Type as "application/json".
+func AbortWithStatusJSON(c *gin.Context, code int, message string) {
+	c.AbortWithStatusJSON(code, gin.H{
+		"code":    code,
+		"message": message,
+	})
+}
+
+// NotFoundHandler is a helper function that calls server.AbortWithStatusJSON.
+func NotFoundHandler(c *gin.Context) {
+	AbortWithStatusJSON(c, http.StatusNotFound, http.StatusText(http.StatusNotFound))
+}
 
 // LoggerHandler returns a gin.HandlerFunc (middleware) that logs requests using logrus.
 //

@@ -1,6 +1,8 @@
 package kit
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 )
@@ -16,8 +18,11 @@ type HTTPEndpoint struct {
 // hosted by a server. Services provide hooks for service-wide options
 // and middlewares and can be used as a means of dependency injection.
 type Service interface {
+	// Config is the global configuration
+	Config() Config
+
 	// HTTPEndpoints default to using a JSON.
-	HTTPEndpoints() map[string]HTTPEndpoint
+	HTTPHandler() http.Handler
 
 	// RPCMiddleware is for any service-wide gRPC specific middleware
 	// for easy integration with 3rd party grpc.UnaryServerInterceptors like

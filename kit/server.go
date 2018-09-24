@@ -9,11 +9,8 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-	"time"
 
-	"github.com/gin-gonic/gin"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/insighted4/insighted-go/kit/pprof"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -36,7 +33,8 @@ type Server struct {
 //
 // Generally, users should only use the 'Run' function to start a server and use this
 // function within tests so they may call ServeHTTP.
-func New(cfg Config, svc Service) *Server {
+func New(svc Service) *Server {
+	cfg := svc.Config()
 	logger := NewLogger(cfg.LoggerLevel, cfg.LoggerFormat)
 
 	s := &Server{
@@ -73,30 +71,8 @@ func createGRPCServer(cfg Config, svc Service, logger logrus.FieldLogger) *grpc.
 }
 
 func createHTTPServer(cfg Config, svc Service, logger logrus.FieldLogger) *http.Server {
-	handler := gin.New()
-	handler.Use(gin.Recovery())
-	handler.Use(CORSHandler())
-	handler.Use(LoggerHandler(logger, time.RFC3339, true))
-	handler.Use(RequestIDHandler())
-	handler.NoRoute(NotFoundHandler)
-
-	for rel, endpoint := range svc.HTTPEndpoints() {
-		group := handler.Group(rel)
-		if endpoint.Middleware != nil {
-			group.Use(endpoint.Middleware)
-		}
-
-		for m, f := range endpoint.Methods {
-			group.Handle(m, "", f)
-		}
-	}
-
-	if cfg.EnablePProf {
-		pprof.Register(handler)
-	}
-
 	return &http.Server{
-		Handler:        handler,
+		Handler:        svc.HTTPHandler(),
 		Addr:           fmt.Sprintf(":%d", cfg.HTTPPort),
 		MaxHeaderBytes: cfg.MaxHeaderBytes,
 		ReadTimeout:    cfg.ReadTimeout,
@@ -169,8 +145,8 @@ func (s *Server) stop() error {
 // Run will create a new server and register the given
 // Service and start up the server(s).
 // This will block until the server shuts down.
-func Run(cfg Config, svc Service) error {
-	srv := New(cfg, svc)
+func Run(svc Service) error {
+	srv := New(svc)
 
 	if err := srv.start(); err != nil {
 		return err
