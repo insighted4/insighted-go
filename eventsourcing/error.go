@@ -13,24 +13,27 @@ const (
 	//InvalidVersion    = "InvalidVersion"
 
 	// ErrorInvalidArgument is returned when the caller passed an incorrect value
-	ErrorInvalidArgument = "Invalid Encoding"
+	ErrorInvalidArgument = "invalid argument"
 
 	// ErrorInvalidEncoding is returned when the Serializer cannot marshal the event
-	ErrorInvalidEncoding = "Invalid Encoding"
+	ErrorInvalidEncoding = "invalid encoding"
 
 	// ErrorUnboundEventType when the Serializer cannot unmarshal the serialized event
-	ErrorUnboundEventType = "Unbound Event Type"
+	ErrorUnboundEventType = "unbound event type"
 
-	// ErrorAggregateNotFound will be returned when attempting to Load an aggregateID
+	// ErrorAggregateNotFound will be returned when attempting to load an aggregateID
 	// that does not exist in the Store
-	ErrorAggregateNotFound = "Aggregate Not Found"
+	ErrorAggregateNotFound = "aggregate not found"
+
+	// ErrorAggregateNotSaved will be returned when attempting to save an aggregate in the Store
+	ErrorAggregateNotSaved = "aggregate not saved"
 
 	// ErrorUnhandledCommand occurs when the command handler is unable to handle a command
-	ErrorUnhandledCommand = "UnhandledCommand"
+	ErrorUnhandledCommand = "unhandled command"
 
 	// ErrorUnhandledEvent occurs when the Aggregate is unable to handle an event and returns
 	// a non-nill err
-	ErrorUnhandledEvent = "UnhandledEvent"
+	ErrorUnhandledEvent = "unhandled event"
 )
 
 // Error provides a standardized error interface for eventsource
@@ -56,7 +59,7 @@ type baseErr struct {
 func (b *baseErr) Cause() error    { return b.cause }
 func (b *baseErr) Code() string    { return b.code }
 func (b *baseErr) Message() string { return b.message }
-func (b *baseErr) Error() string   { return fmt.Sprintf("[%v] %v - %v", b.code, b.message, b.cause) }
+func (b *baseErr) Error() string   { return fmt.Sprintf("%s: %s", b.message, b.cause.Error()) }
 func (b *baseErr) String() string  { return b.Error() }
 
 // NewError generates the common error structure

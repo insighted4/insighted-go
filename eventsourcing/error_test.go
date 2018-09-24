@@ -18,7 +18,7 @@ func TestNewError(t *testing.T) {
 	assert.Equal(t, io.EOF, v.Cause())
 	assert.Equal(t, "code", v.Code())
 	assert.Equal(t, "hello world", v.Message())
-	assert.Equal(t, "[code] hello world - EOF", v.Error())
+	assert.Equal(t, "hello world: EOF", v.Error())
 
 	s, ok := err.(fmt.Stringer)
 	assert.True(t, ok)
