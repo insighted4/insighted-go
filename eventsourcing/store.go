@@ -67,7 +67,7 @@ func (m *MemStore) Save(ctx context.Context, aggregateID string, records ...Reco
 func (m *MemStore) Load(ctx context.Context, aggregateID string, fromVersion, toVersion int) (History, Error) {
 	all, ok := m.eventsByID[aggregateID]
 	if !ok {
-		return nil, NewError(nil, ErrorAggregateNotFound, "no aggregate found with id, %v", aggregateID)
+		return nil, NewError(nil, ErrorAggregateNotFound, "no aggregate found with id %v", aggregateID)
 	}
 
 	history := make(History, 0, len(all))
@@ -79,7 +79,7 @@ func (m *MemStore) Load(ctx context.Context, aggregateID string, fromVersion, to
 		}
 	}
 
-	return all, nil
+	return history, nil
 }
 
 // NewMemStore returns a in-MemStore backed store
