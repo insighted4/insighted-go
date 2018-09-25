@@ -3,6 +3,7 @@ package eventsourcing
 import (
 	"context"
 	"reflect"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -52,13 +53,60 @@ func (r *Repository) Save(ctx context.Context, events ...Event) Error {
 
 // Load retrieves the specified aggregate from the underlying store
 func (r *Repository) Load(ctx context.Context, aggregateID string) (Aggregate, Error) {
-	v, _, err := r.loadVersion(ctx, aggregateID)
+	v, _, err := r.loadVersion(ctx, aggregateID, 0)
 	return v, err
 }
 
-// loadVersion loads the specified aggregate from the store and returns both the Aggregate and the
+// LoadVersion retrieves the specified aggregate from the underlying store at a particular version.
+func (r *Repository) LoadVersion(ctx context.Context, aggregateID string, version int) (Aggregate, error) {
+	v, _, err := r.loadVersion(ctx, aggregateID, version)
+	return v, err
+}
+
+// LoadTime retrieves the specified aggregate from the underlying store as of some point in time.
+func (r *Repository) LoadTime(ctx context.Context, aggregateID string, endTime time.Time) (Aggregate, error) {
+	v, _, err := r.loadTime(ctx, aggregateID, endTime)
+	return v, err
+}
+
+// LoadVersion loads the specified aggregate from the store and returns both the Aggregate and the
 // current version number of the aggregate
-func (r *Repository) loadVersion(ctx context.Context, aggregateID string) (Aggregate, int, Error) {
+func (r *Repository) loadVersion(ctx context.Context, aggregateID string, version int) (Aggregate, int, Error) {
+	history, err := r.store.Load(ctx, aggregateID, 0, version)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	entryCount := len(history)
+	if entryCount == 0 {
+		return nil, 0, NewError(nil, ErrorAggregateNotFound, "unable to load %v, %v", r.New(), aggregateID)
+	}
+
+	r.logger.Infof("Loaded %v event(s) for aggregate id, %v", entryCount, aggregateID)
+	aggregate := r.New()
+
+	version = 0
+	for _, record := range history {
+		event, err := r.serializer.UnmarshalEvent(record)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		err = aggregate.On(event)
+		if err != nil {
+			eventType, _ := EventType(event)
+			return nil, 0, NewError(err, ErrorUnhandledEvent, "aggregate was unable to handle event, %v", eventType)
+		}
+
+		version = event.EventVersion()
+	}
+
+	return aggregate, version, nil
+}
+
+// loadTime loads the specified aggregate from the store at some point in time and returns
+// both the Aggregate and the current version number of the aggregate.
+func (r *Repository) loadTime(ctx context.Context, aggregateID string, endTime time.Time) (Aggregate, int, error) {
 	history, err := r.store.Load(ctx, aggregateID, 0, 0)
 	if err != nil {
 		return nil, 0, err
@@ -77,6 +125,11 @@ func (r *Repository) loadVersion(ctx context.Context, aggregateID string) (Aggre
 		event, err := r.serializer.UnmarshalEvent(record)
 		if err != nil {
 			return nil, 0, err
+		}
+
+		// Stop if after the end time.
+		if event.EventAt().After(endTime) {
+			break
 		}
 
 		err = aggregate.On(event)
@@ -101,7 +154,7 @@ func (r *Repository) Apply(ctx context.Context, command Command) (int, Error) {
 		return 0, NewError(nil, ErrorInvalidArgument, "command provided to Repository.Dispatch may not contain a blank aggregate ID")
 	}
 
-	aggregate, version, err := r.loadVersion(ctx, aggregateID)
+	aggregate, version, err := r.loadVersion(ctx, aggregateID, 0)
 	if err != nil {
 		aggregate = r.New()
 	}
@@ -134,6 +187,16 @@ func (r *Repository) Apply(ctx context.Context, command Command) (int, Error) {
 	}
 
 	return version, nil
+}
+
+// Store returns the underlying Store
+func (r *Repository) Store() Store {
+	return r.store
+}
+
+// Serializer returns the underlying serializer
+func (r *Repository) Serializer() Serializer {
+	return r.serializer
 }
 
 // NewRepository creates a new Repository using the JSON serializer and In-Memory store.
